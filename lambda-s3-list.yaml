@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  # IAM Role for Lambda Execution
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-LambdaExecutionRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: !Sub '${AWS::StackName}-LambdaPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+              - Effect: 'Allow'
+                Action:
+                  - 's3:ListAllMyBuckets'
+                Resource: '*'
+
+  # Lambda Function
+  ListS3BucketsFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-ListS3BucketsFunction'
+      Handler: 'index.lambda_handler'
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: 'python3.9'
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+
+          s3_client = boto3.client('s3')
+
+          def lambda_handler(event, context):
+              # List all S3 buckets
+              response = s3_client.list_buckets()
+              buckets = [bucket['Name'] for bucket in response['Buckets']]
+              
+              # Print the list of bucket names
+              print(f'Buckets: {buckets}')
+              
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps({'buckets': buckets})
+              }
+
+Outputs:
+  LambdaFunctionArn:
+    Description: 'ARN of the Lambda Function'
+    Value: !GetAtt ListS3BucketsFunction.Arn
+
+  LambdaExecutionRoleArn:
+    Description: 'ARN of the Lambda Execution Role'
+    Value: !GetAtt LambdaExecutionRole.Arn
