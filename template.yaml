@@ -53,6 +53,7 @@ Resources:
               'statusCode': 200,
               'body': {
                 'buckets': buckets
+              }
             }
 
 Outputs:
