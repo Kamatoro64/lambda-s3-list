@@ -49,12 +49,14 @@ Resources:
               response = s3_client.list_buckets()
               buckets = [bucket['Name'] for bucket in response['Buckets']]
               
-              # Print the list of bucket names
-              print(f'Buckets: {buckets}')
+              pretty_buckets = '\n'.join(f'- {bucket}' for bucket in buckets)
+              
+              # This gets printed in lambda logs
+              print(f'Buckets:\n{pretty_buckets}')
               
               return {
                   'statusCode': 200,
-                  'body': json.dumps({'buckets': buckets})
+                  'body': json.dumps({'buckets': buckets}, indent=4)
               }
 
 Outputs:
