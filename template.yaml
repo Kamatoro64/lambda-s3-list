@@ -45,19 +45,15 @@ Resources:
           s3_client = boto3.client('s3')
 
           def lambda_handler(event, context):
-              # List all S3 buckets
-              response = s3_client.list_buckets()
-              buckets = [bucket['Name'] for bucket in response['Buckets']]
+            # List all S3 buckets
+            response = s3_client.list_buckets()
+            buckets = [bucket['Name'] for bucket in response['Buckets']]
               
-              pretty_buckets = '\n'.join(f'- {bucket}' for bucket in buckets)
-              
-              # This gets printed in lambda logs
-              print(f'Buckets:\n{pretty_buckets}')
-              
-              return {
-                  'statusCode': 200,
-                  'body': json.dumps({'buckets': buckets}, indent=4)
-              }
+            return {
+              'statusCode': 200,
+              'body': {
+                'buckets': buckets
+            }
 
 Outputs:
   LambdaFunctionArn:
